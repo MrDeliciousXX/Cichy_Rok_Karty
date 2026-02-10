@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Talia kart</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0b3d2e;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      gap: 14px;
+    }
+
+    .deck-state {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+
+    .card {
+      width: 330px;
+      height: 460px;
+      background: white;
+      color: black;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      box-shadow: 0 10px 20px rgba(0,0,0,.4);
+      text-align: center;
+    }
+
+    .symbol {
+      font-size: 40px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .text {
+      font-size: 14px;
+      line-height: 1.4;
+      margin-top: auto;
+      margin-bottom: auto;
+    }
+
+    .lub {
+      font-weight: bold;
+      margin: 4px 0;
+    }
+
+    .red {
+      color: #c62828;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="deck-state" id="deckState">52 / 52</div>
+
+  <div id="card" class="card">
+    <div class="symbol">🂠</div>
+    <div class="text">
+      <div>—</div>
+      <div class="lub">lub</div>
+      <div>—</div>
+    </div>
+  </div>
+
+  <div class="buttons">
+    <button onclick="drawCard()">Dobierz kartę</button>
+    <button onclick="shuffleDeck()">Tasuj</button>
+  </div>
+
+  <script>
+    /* ===== OPISY KART ===== */
+    const cardDescriptions = {
+      "A♥": {
+        part1: "Jaka grupa społeczna jest najwyżej w hierarchii? Jak się do niej dostać?",
+        part3: "Czy w społeczności występują wyraźne jednostki rodzinne? Jakie modele rodziny są najbardziej powszechne?"
+      },
+      "K♥": {
+        part1: "Młody chłopiec kopiąc w ziemi znajduje coś niespodziewanego. Co to jest?",
+        part3: "Stary człowiek przyznaje się do zbrodni i okropieństw popełnionych w przeszłości. Co to było?"
+      },
+      "Q♥": {
+        part1: "Co jest najpiękniejszą rzeczą w tej okolicy?",
+        part3: "Co jest najbrzydszą rzeczą w tej okolicy?"
+      },
+      "J♥": {
+        part1: "Pojawia się dobry omen. Co to jest?",
+        part3: "Pojawia się zły omen. Co to jest?"
+      },
+      "10♥": {
+        part1: "Gdzieś na mapie jest druga społeczność. Gdzie są? Co ich różni?",
+        part3: "Jakie przekonanie lub praktyka pomogła zjednoczyć społeczność?"
+      },
+      "9♥": {
+        part1: "Charyzmatyczna młoda dziewczyna przekonuje innych do pomocy w złożonym planie. Co to jest? Kto do niej dołącza? Rozpocznij projekt.",
+        part3: "Charyzmatyczna młoda dziewczyna próbuje skusić innych do niebezpiecznej i niemoralnej działalności. Dlaczego to robi? Jak reagują inni?"
+      },
+      "8♥": {
+        part1: "Odnaleziono stary uszkodzony kawałek maszyny, który być może da się naprawić. Co to jest? Do czego było używane?",
+        part3: "Odnaleziono stary kawałek maszyny, który jest przeklęty i niebezpieczny. Co to jest? Jak się tego pozbędziemy?"
+      },
+      "7♥": {
+        part1: "Gdzie śpią mieszkańcy? Komu nie pasuje taki układ i dlaczego?",
+        part3: "Jakie drapieżniki występują w okolicy? Czy mieszkańcy są bezpieczni?"
+      },
+      "6♥": {
+        part1: "Czy w społeczności są dzieci? Jaka jest ich rola w społeczeństwie?",
+        part3: "Ile lat mają najstarsi członkowie społeczności? Jakie specjalnie potrzeby mają?"
+      },
+      "5♥": {
+        part1: "Krąży niepokojąca legenda o tym miejscu. Jaka?",
+        part3: "Z pogodą dzieje się coś dziwnego. Co to jest?"
+      },
+      "4♥": {
+        part1: "Co jest ważnym i podstawowym narzędziem? Czy brakuje go społeczności?",
+        part3: "Gdzie jest magazynowana żywność? Dlaczego jest to ryzykowne miejsce?"
+      },
+      "3♥": {
+        part1: "Przybywa ktoś nowy. Kto to?",
+        part3: "Dwójka młodych wdało się w bójkę. Co ich sprowokowało?"
+      },
+      "2♥": {
+        part1: "Na mapie znajduje się duży zbiornik wodny. Gdzie jest? Jak wygląda?",
+        part3: "Na mapie znajduje się ogromna struktura zbudowana przez ludzi. Gdzie jest? Dlaczego jest opuszczona?"
+      },
+
+      "A♦": {
+        part1: "Część społeczności domaga się aby ich wysłuchano. Kim są i czego żądają?",
+        part3: "Część społeczności się zbunowała. Co zniszczyli i dlaczego? Czy zniszczenia są trwałe?"
+      },
+      "K♦": {
+        part1: "Lato ucieka. Odrzuć dwie górne karty z talii i wykonaj dwa działania w tym tygodniu.",
+      },
+      "Q♦": {
+        part1: "Projekt kończy się wcześniej. Który i dlaczego?",
+        part3: "Jeśli nie ma projektów w realizacji, nuda prowadzi do kłótni. Dwie osoby wdają się w bójkę. O co poszło?"
+      },
+      "J♦": {
+        part1: "Pojawia się zły omen oraz drapieżniki. Przez nieostrożność ktoś znika w tajemniczych okolicznościach. Kto?",
+        part3: "Pojawia się zły znak oraz drapieżniki. Jakie środki podejmuje społeczność, aby się chronić? Czy są skuteczne? (Nie redukuj kostek projektowych w tym tygodniu)"
+      },
+      "10♦": {
+        part1: "Odnaleziono zapasy lub źródło zasobów. Dodaj nową obfitość.",
+        part3: "Niedobór zasobu był ignorowany zbyt długo. Rozpocznij projekt aby temu zaradzić."
+      },
+      "9♦": {
+        part1: "Projekt sie nie udaje. Który? Dlaczego?",
+        part3: "Coś poszło nie tak i zapasy ulegają zniszczeniu. Dodaj nowy niedobór."
+      },
+      "8♦": {
+        part1: "Ktoś próbuje siłą przejąć kontrolę nad społecznością. Dlaczego? Czy mu się udaje?",
+        part3: "Jeden z mieszkańców wpada na pomysł. Rozpocznij głupi projekt."
+      },
+      "7♦": {
+        part1: "Wprowadź tajemnicę na skraju mapy",
+        part3: "Coś niezauważonego staje się problematyczna i przerażająca. Co to jest? Jak sobie z tym poradzić?"
+      },
+      "6♦": {
+        part1: "Obcy pojawiają się w okolicy. Dlaczego stanowią zagrożenie? Jak można ich pokonać?",
+        part3: "Obcy pojawiają się w okolicy. Ile? Jak są witani?"
+      },
+      "5♦": {
+        part1: "Projekt kończy sie wcześniej. Dlaczego?",
+        part3: "Ładna pogoda sprzyja dobrym pomysłom. Rozpocznij nowy projekt."
+      },
+      "4♦": {
+        part1: "Najstarszy mieszkaniec umiera. Co było przyczyną śmierci?",
+        part3: "Najstarszy mieszkaniec jest bardzo chory. Dbanie o niego i szukanie lekarstwa wymaga pomocy całej społeczności. Nie zmniejszaj kostek projektu w tym tygodniu."
+      },
+      "3♦": {
+        part1: "Lato to czas pokoju. Rozpocznij projekt związany z produkcją żywności.",
+        part3: "Lato to czas wojny. Rozpocznij projekt militarny i podbój."
+      },
+      "2♦": {
+        part1: "Przybywa ktoś nowy. Kto? Dlaczego mieszkańcy są zaniepokojeni?",
+        part3: "Ktoś opuszcza społeczność. Kto i dlaczego?"
+      },
+        
+      "A♣": {
+        part1: "Społeczność ma obsesję na punkcie jednego projektu. Którego? Dlaczego? Wybierz jedno: \t\t Decydują się poświęcić więcej czasu, aby był idealny. Dodaj 3 tygodnie do kostki projektu.",
+        part3: "Rzucają wszystko inne, aby nad nim pracować. Wszystkie inne projekty kończą się niepowodzeniem.\t\t Jeśli nie ma trwających projektów, społeczność nabiera obsesji na punkcie wielkiej wizji. Przeprowadź dyskusję o tej wizji, dodatkowo do swojej regularnej akcji."
+      },
+      "K♣": {
+        part1: "Obszar nawiedza klęska żywiołowa. Co to jest? Wybierz jedno:\t\tSkupiasz się na zapewnieniu wszystkim bezpieczeństwa. Usuń Obfitość i jeden projekt kończy się niepowodzeniem.",
+        part3: "Skupiasz się na ochronie zapasów i ciężkiej pracy za wszelką cenę. W rezultacie umiera kilka osób."
+      },
+      "Q♣": {
+        part1: "Choroba rozprzestrzenia się w społeczności. Wybierz jedno:\t\tSpędzasz tydzień na kwarantannie i leczeniu choroby. Kostki projektów nie są zmniejszane w tym tygodniu.",
+        part3: "Nikt nie wie, co z tym zrobić. Dodaj „Zdrowie i Płodność” jako Niedostatek."
+      },
+      "J♣": {
+        part1: "Projekt kończy się wcześniej. Który? Dlaczego?",
+        part3: "eśli nie ma trwających projektów, niepokój rodzi niechęć, a niechęć prowadzi do przemocy. Kto odnosi obrażenia?"
+      },
+      "10♣": {
+        part1: "Żniwa nadeszły i są obfite. Dodaj Obfitość.",
+        part3: "Zimne jesienne wiatry wypędzają waszych wrogów. Usuń zagrażającą siłę z mapy i okolicy."
+      },
+      "9♣": {
+        part1: "Społeczność pracuje nieustannie i w rezultacie projekt kończy się wcześniej.",
+        part3: "Grupa wyrusza, aby dokładniej zbadać mapę i znajduje coś, co wcześniej przeoczono."
+      },
+      "8♣": {
+        part1: "Ktoś sabotuje projekt, który w rezultacie kończy się niepowodzeniem. Kto to zrobił? Dlaczego?",
+        part3: "Ktoś sabotuje projekt, który w rezultacie kończy się niepowodzeniem. Kto to zrobił? Dlaczego?"
+      },
+      "7♣": {
+        part1: "Projekt nie idzie zgodnie z oczekiwaniami. Radykalnie zmień naturę tego projektu (nie zmieniaj kostki projektu). Gdy zostanie ukończony, będziesz odpowiedzialny za opowiedzenie społeczności, jak poszło.",
+        part3: "Coś psuje się i zapasy zostają zniszczone. Dodaj nowy Niedostatek."
+      },
+      "6♣": {
+        part1: "Wprowadź mroczną tajemnicę wśród członków społeczności.",
+        part3: "Konflikt wybucha między członkami społeczności i w rezultacie projekt kończy się niepowodzeniem."
+      },
+      "5♣": {
+        part1: "Przybywa Zakon. Kim są? Dlaczego wybrali waszą społeczność i po co? ",
+        part3: "Mały gang maruderów przedziera się przez lokalny teren. Ilu ich jest? Jaką broń niosą?"
+      },
+      "4♣": {
+        part1: "Najsilniejszy z was umiera. Co spowodowało śmierć?",
+        part3: "Najsłabszy z was umiera. Kto jest winny jego śmierci?"
+      },
+      "3♣": {
+        part1: "Ktoś opuszcza społeczność po wydaniu złowrogiego ostrzeżenia. Kto to? Jakie to ostrzeżenie?",
+        part3: "Ktoś wydaje złowrogie ostrzeżenie, a społeczność rzuca się do działania, by uniknąć katastrofy. Jakie to ostrzeżenie? Rozpocznij sporny projekt z tym związany."
+      },
+      "2♣": {
+        part1: "Ktoś wraca do społeczności. Kto to? Gdzie był?",
+        part3: "Znajdujesz ciało. Czy ludzie rozpoznają, kto to jest? Co się stało?"
+      },
+
+      "A♠": {
+        part1: "Teraz jest czas na oszczędzanie energii i zasobów. Projekt kończy się niepowodzeniem, ale zyskujesz Obfitość.",
+        part3: "Teraz jest czas na pośpieszny wysiłek i ostatnie starania. Projekt kończy się wcześniej, ale zyskujesz Niedostatek."
+      },
+      "K♠": {
+        part1: "Przybywa Dziki Gon. Gra się kończy.",
+      },
+      "Q♠": {
+        part1: "Widzisz dobry znak. Co to jest?",
+      },
+      "J♠": {
+        part1: "Przybywa zarażony obcy, prosząc o azyl. Ma ze sobą pewne bardzo potrzebne zasoby. Wybierz jedno:\t\tPrzyjmij go do społeczności. Usuń Niedostatek, ale wprowadź infekcję do społeczności.",
+        part3: "Zakaż mu wstępu. Jaki Niedostatek mógłby on rozwiązać? Jak potrzeba jego zaspokojenia staje się bardziej paląca w tym tygodniu?"
+      },
+      "10♠": {
+        part1: "W ramach przygotowań do nadchodzącego roku społeczność rozpoczyna ogromne przedsięwzięcie. Rozpocznij projekt, którego ukończenie zajmie co najmniej 5 tygodni.",
+      },
+      "9♠": {
+        part1: "Ktoś się gubi. Jest sam na mrozie. Wybierz jedno:\t\tSpołeczność organizuje nieustanne poszukiwania i w końcu osoba zostaje odnaleziona. Kostki projektów nie są zmniejszane w tym tygodniu.",
+        part3: "Nikt nigdy więcej o tej osobie nie słyszy."
+      },
+      "8♠": {
+        part1: "Zima jest surowa, a desperacja rodzi sianie strachu. Wybierz jedno:\t\tSpędź tydzień na uspokajaniu ludzi i rozpraszaniu ich gwałtownych nastrojów. Tydzień kończy się natychmiast.",
+        part3: "Wypowiedz komuś lub czemuś wojnę. To liczy się jako rozpoczęcie projektu."
+      },
+      "7♠": {
+        part1: "Jaka jest zima w tej okolicy? Jak członkowie społeczności reagują na pogodę?",
+      },
+      "6♠": {
+        part1: "Nadszedł czas, aby skonsolidować wysiłki i granice. Projekty zlokalizowane poza osadą kończą się niepowodzeniem, a wszystkie pozostałe projekty zostają skrócone o 2 w tym tygodniu.",
+        part3: "Ktoś znajduje ciekawą okazję na krawędzi mapy. Rozpocznij projekt związany z tym odkryciem."
+      },
+      "5♠": {
+        part1: "Zimowe żywioły niszczą źródło pożywienia. Jeśli to było wasze jedyne źródło żywności, dodaj Niedostatek",
+        part3: "Zimowe żywioły sprawiają, że wszyscy są zmarznięci, zmęczeni i nieszczęśliwi. Kostki projektów nie są zmniejszane w tym tygodniu."
+      },
+      "4♠": {
+        part1: "Wszystkie zwierzęta i małe dzieci płaczą i nie chcą przestać. Przeprowadź dyskusję na ten temat, dodatkowo do swojej regularnej akcji na ten tydzień.",
+        part3: "Ujawniona zostaje wielka potworność. Co to jest? Kto ją odkrywa?"
+      },
+      "3♠": {
+        part1: "Ktoś wpada na genialne rozwiązanie dużego problemu i w rezultacie projekt kończy się wcześniej. Jaki to był pomysł?",
+        part3: "Ktoś wpada na plan zapewnienia bezpieczeństwa i komfortu podczas najzimniejszych miesięcy. Rozpocznij projekt z tym związany."
+      },
+      "2♠": {
+        part1: "Uparty członek społeczności przejmuje kontrolę nad pracami społeczności. Jeden projekt kończy się niepowodzeniem, a następnie inny kończy się wcześniej.",
+        part3: "Uparty członek społeczności próbuje przejąć kontrolę nad społecznością. Jak udaje się go powstrzymać? Z powodu konfliktu, kostki projektów nie są zmniejszane w tym tygodniu."
+      },
+    };
+
+    const suits = [
+      { symbol: "♠", color: "black" },
+      { symbol: "♣", color: "black" },
+      { symbol: "♦", color: "red" },
+      { symbol: "♥", color: "red" }
+    ];
+
+    const values = ["A", "K", "Q", "J", "10", "9", "8", "7", "6", "5", "4", "3", "2"];
+
+    let deck = [];
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function buildDeck() {
+      deck = [];
+
+      suits.forEach(suit => {
+        const suitCards = values.map(v => ({
+          key: v + suit.symbol,
+          symbol: v + suit.symbol,
+          color: suit.color
+        }));
+
+        shuffle(suitCards);
+        deck.push(...suitCards);
+      });
+
+      updateDeckState();
+    }
+
+    function updateDeckState() {
+      document.getElementById("deckState").textContent =
+        `${deck.length} / 52`;
+    }
+
+    function drawCard() {
+      if (deck.length === 0) {
+        alert("Brak kart w talii!");
+        return;
+      }
+
+      const card = deck.pop();
+      const cardDiv = document.getElementById("card");
+
+      const symbolDiv = cardDiv.querySelector(".symbol");
+      symbolDiv.textContent = card.symbol;
+      symbolDiv.classList.toggle("red", card.color === "red");
+
+      const textDiv = cardDiv.querySelector(".text");
+      const desc = cardDescriptions[card.key];
+
+      if (desc && desc.part3) {
+        textDiv.innerHTML = `
+          <div>${desc.part1}</div>
+          <div class="lub">lub</div>
+          <div>${desc.part3}</div>
+        `;
+      } else if (desc){
+        textDiv.innerHTML = `
+          <div>${desc.part1}</div>
+        `;
+      } else {
+        textDiv.innerHTML = `
+          <div>Ta karta nie została opisana</div>
+          <div class="lub">lub</div>
+          <div>czeka na swoją historię</div>
+        `;
+      }
+
+      updateDeckState();
+    }
+
+    function shuffleDeck() {
+      buildDeck();
+
+      const cardDiv = document.getElementById("card");
+      cardDiv.querySelector(".symbol").textContent = "🂠";
+      cardDiv.querySelector(".symbol").classList.remove("red");
+
+      cardDiv.querySelector(".text").innerHTML = `
+        <div>—</div>
+        <div class="lub">Dobierz kartę</div>
+        <div>—</div>
+      `;
+    }
+
+    shuffleDeck();
+  </script>
+
+</body>
+</html>
