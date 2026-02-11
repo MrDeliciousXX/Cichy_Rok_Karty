@@ -56,6 +56,19 @@
       color: #c62828;
     }
 
+    /* ===== PORY ROKU ===== */
+
+    .season {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 2px;
+    }
+
+    .season-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
     button {
       padding: 10px 20px;
       font-size: 16px;
@@ -254,7 +267,7 @@
         part3: "Teraz jest czas na pośpieszny wysiłek i ostatnie starania. Projekt kończy się wcześniej, ale zyskujesz Niedostatek."
       },
       "K♠": {
-        part1: "Przybywa Dziki Gon. Gra się kończy.",
+        part1: "Przybywają Siewcy Mrozu, Dziki Gon, Nocny Król oraz Imperator Senyszyn. Gra się kończy.",
       },
       "Q♠": {
         part1: "Widzisz dobry znak. Co to jest?",
@@ -306,6 +319,13 @@
       { symbol: "♥", color: "red" }
     ];
 
+    const seasons = [
+      { icon: "🌸", name: "WIOSNA" },
+      { icon: "☀️", name: "LATO" },
+      { icon: "🍂", name: "JESIEŃ" },
+      { icon: "❄️", name: "ZIMA" }
+    ];
+
     const values = ["A", "K", "Q", "J", "10", "9", "8", "7", "6", "5", "4", "3", "2"];
 
     let deck = [];
@@ -329,6 +349,15 @@
 
         shuffle(suitCards);
         deck.push(...suitCards);
+
+        // dodaj sezon między kolorami (poza ostatnim)
+        if (index < suits.length - 1) {
+          deck.push({
+            type: "season",
+            icon: seasons[index].icon,
+            name: seasons[index].name
+          });
+        }
       });
 
       updateDeckState();
@@ -348,29 +377,37 @@
       const card = deck.pop();
       const cardDiv = document.getElementById("card");
 
-      const symbolDiv = cardDiv.querySelector(".symbol");
-      symbolDiv.textContent = card.symbol;
-      symbolDiv.classList.toggle("red", card.color === "red");
-
-      const textDiv = cardDiv.querySelector(".text");
-      const desc = cardDescriptions[card.key];
-
-      if (desc && desc.part3) {
-        textDiv.innerHTML = `
-          <div>${desc.part1}</div>
-          <div class="lub">lub</div>
-          <div>${desc.part3}</div>
-        `;
-      } else if (desc){
-        textDiv.innerHTML = `
-          <div>${desc.part1}</div>
+      if (item.type === "season") {
+        cardDiv.innerHTML = `
+          <div class="season-icon">${item.icon}</div>
+          <div class="season">${item.name}</div>
         `;
       } else {
-        textDiv.innerHTML = `
-          <div>Ta karta nie została opisana</div>
-          <div class="lub">lub</div>
-          <div>czeka na swoją historię</div>
-        `;
+
+        const symbolDiv = cardDiv.querySelector(".symbol");
+        symbolDiv.textContent = card.symbol;
+        symbolDiv.classList.toggle("red", card.color === "red");
+  
+        const textDiv = cardDiv.querySelector(".text");
+        const desc = cardDescriptions[card.key];
+  
+        if (desc && desc.part3) {
+          textDiv.innerHTML = `
+            <div>${desc.part1}</div>
+            <div class="lub">lub</div>
+            <div>${desc.part3}</div>
+          `;
+        } else if (desc){
+          textDiv.innerHTML = `
+            <div>${desc.part1}</div>
+          `;
+        } else {
+          textDiv.innerHTML = `
+            <div>Ta karta nie została opisana</div>
+            <div class="lub">lub</div>
+            <div>czeka na swoją historię</div>
+          `;
+        }
       }
 
       updateDeckState();
