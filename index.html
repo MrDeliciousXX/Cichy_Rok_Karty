@@ -1,89 +1,87 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8" />
-  <title>Talia kart</title>
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      background: #0b3d2e;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      gap: 14px;
-    }
+<meta charset="UTF-8" />
+<title>Talia kart</title>
 
-    .deck-state {
-      font-size: 18px;
-      opacity: 0.9;
-    }
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    background: #0b3d2e;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    gap: 14px;
+  }
 
-    .card {
-      width: 330px;
-      height: 460px;
-      background: white;
-      color: black;
-      border-radius: 16px;
-      display: flex;
-      flex-direction: column;
-      padding: 12px;
-      box-shadow: 0 10px 20px rgba(0,0,0,.4);
-      text-align: center;
-    }
+  .deck-state {
+    font-size: 18px;
+    opacity: 0.9;
+  }
 
-    .symbol {
-      font-size: 40px;
-      font-weight: bold;
-      margin-bottom: 8px;
-    }
+  .card {
+    width: 330px;
+    height: 460px;
+    background: white;
+    color: black;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    box-shadow: 0 10px 20px rgba(0,0,0,.4);
+    text-align: center;
+  }
 
-    .text {
-      font-size: 14px;
-      line-height: 1.4;
-      margin-top: auto;
-      margin-bottom: auto;
-    }
+  .symbol {
+    font-size: 40px;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
 
-    .lub {
-      font-weight: bold;
-      margin: 4px 0;
-    }
+  .text {
+    font-size: 14px;
+    line-height: 1.4;
+    margin-top: auto;
+    margin-bottom: auto;
+  }
 
-    .red {
-      color: #c62828;
-    }
+  .lub {
+    font-weight: bold;
+    margin: 6px 0;
+  }
 
-    /* ===== PORY ROKU ===== */
+  .red { color: #c62828; }
 
-    .season {
-      font-size: 28px;
-      font-weight: 900;
-      letter-spacing: 2px;
-    }
+  .season {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 2px;
+  }
 
-    .season-icon {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
+  .season-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
 
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-    }
+  button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+  }
 
-    .buttons {
-      display: flex;
-      gap: 12px;
-    }
+  .buttons {
+    display: flex;
+    gap: 12px;
+  }
   </style>
-</head>
-<body>
+  </head>
+
+  <body>
 
   <div class="deck-state" id="deckState">52 / 52</div>
 
@@ -91,7 +89,7 @@
     <div class="symbol">🂠</div>
     <div class="text">
       <div>—</div>
-      <div class="lub">lub</div>
+      <div class="lub">Dobierz kartę</div>
       <div>—</div>
     </div>
   </div>
@@ -313,10 +311,10 @@
     };
 
     const suits = [
-      { symbol: "♠", color: "black" },
-      { symbol: "♣", color: "black" },
+      { symbol: "♥", color: "red" },
       { symbol: "♦", color: "red" },
-      { symbol: "♥", color: "red" }
+      { symbol: "♣", color: "black" },
+      { symbol: "♠", color: "black" }
     ];
 
     const seasons = [
@@ -326,21 +324,30 @@
       { icon: "❄️", name: "ZIMA" }
     ];
 
-    const values = ["A", "K", "Q", "J", "10", "9", "8", "7", "6", "5", "4", "3", "2"];
+    const values = ["A","K","Q","J","10","9","8","7","6","5","4","3","2"];
 
     let deck = [];
 
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+    function shuffle(array){
+      for(let i=array.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [array[i],array[j]]=[array[j],array[i]];
       }
     }
 
-    function buildDeck() {
+    function buildDeck(){
       deck = [];
 
-      suits.forEach(suit => {
+      suits.forEach((suit, index) => {
+
+        // najpierw sezon
+        deck.push({
+          type: "season",
+          icon: seasons[index].icon,
+          name: seasons[index].name
+        });
+
+        // potem 13 kart koloru
         const suitCards = values.map(v => ({
           key: v + suit.symbol,
           symbol: v + suit.symbol,
@@ -349,63 +356,53 @@
 
         shuffle(suitCards);
         deck.push(...suitCards);
-
-        // dodaj sezon między kolorami (poza ostatnim)
-        if (index < suits.length - 1) {
-          deck.push({
-            type: "season",
-            icon: seasons[index].icon,
-            name: seasons[index].name
-          });
-        }
       });
 
       updateDeckState();
     }
 
-    function updateDeckState() {
+
+    function updateDeckState(){
       document.getElementById("deckState").textContent =
-        `${deck.length} / 52`;
+        deck.filter(c=>c.type!=="season").length + " / 52";
     }
 
-    function drawCard() {
-      if (deck.length === 0) {
+    function drawCard(){
+      if(deck.length===0){
         alert("Brak kart w talii!");
         return;
       }
 
-      const card = deck.pop();
+      const card = deck.shift();
       const cardDiv = document.getElementById("card");
 
-      if (item.type === "season") {
+      if(card.type==="season"){
         cardDiv.innerHTML = `
-          <div class="season-icon">${item.icon}</div>
-          <div class="season">${item.name}</div>
+          <div class="season-icon">${card.icon}</div>
+          <div class="season">${card.name}</div>
         `;
       } else {
+        cardDiv.innerHTML = `
+          <div class="symbol ${card.color==="red"?"red":""}">
+            ${card.symbol}
+          </div>
+          <div class="text"></div>
+        `;
 
-        const symbolDiv = cardDiv.querySelector(".symbol");
-        symbolDiv.textContent = card.symbol;
-        symbolDiv.classList.toggle("red", card.color === "red");
-  
         const textDiv = cardDiv.querySelector(".text");
         const desc = cardDescriptions[card.key];
-  
-        if (desc && desc.part3) {
+
+        if(desc && desc.part3){
           textDiv.innerHTML = `
             <div>${desc.part1}</div>
             <div class="lub">lub</div>
             <div>${desc.part3}</div>
           `;
-        } else if (desc){
-          textDiv.innerHTML = `
-            <div>${desc.part1}</div>
-          `;
+        } else if(desc){
+          textDiv.innerHTML = `<div>${desc.part1}</div>`;
         } else {
           textDiv.innerHTML = `
             <div>Ta karta nie została opisana</div>
-            <div class="lub">lub</div>
-            <div>czeka na swoją historię</div>
           `;
         }
       }
@@ -413,17 +410,15 @@
       updateDeckState();
     }
 
-    function shuffleDeck() {
+    function shuffleDeck(){
       buildDeck();
-
-      const cardDiv = document.getElementById("card");
-      cardDiv.querySelector(".symbol").textContent = "🂠";
-      cardDiv.querySelector(".symbol").classList.remove("red");
-
-      cardDiv.querySelector(".text").innerHTML = `
-        <div>—</div>
-        <div class="lub">Dobierz kartę</div>
-        <div>—</div>
+      document.getElementById("card").innerHTML = `
+        <div class="symbol">🂠</div>
+        <div class="text">
+          <div>—</div>
+          <div class="lub">Dobierz kartę</div>
+          <div>—</div>
+        </div>
       `;
     }
 
